@@ -52,7 +52,7 @@ const syncUserUpdation = inngest.createFunction(
 const syncWorkspaceCreation = inngest.createFunction(
   {
     id: "sync-workspace-from-clerk",
-    triggers: [{ event: clerk / organization.created }],
+    triggers: [{ event: "clerk/organization.created" }],
   },
   async ({ event }) => {
     const { data } = event;
@@ -99,26 +99,32 @@ const syncWorkspaceDeletion = inngest.createFunction(
     id: "sync-workspace-delete",
     triggers: [{ event: "clerk/organization.deleted" }],
   },
-  await prisma.workspace.delete({
-    where: {
-      id: data.id,
-    },
-  }),
+  async ({ event }) => {
+    const { data } = event;
+    await prisma.workspace.delete({
+      where: {
+        id: data.id,
+      },
+    });
+  },
 );
 
-const syncWorkspaceMemberCreation = inngest.createFunction({
-  id: "sync-workspace-member-create",
-  triggers: [
-    { event: "clerk/organizationInvitation.accepted" },
+const syncWorkspaceMemberCreation = inngest.createFunction(
+  {
+    id: "sync-workspace-member-create",
+    triggers: [{ event: "clerk/organizationInvitation.accepted" }],
+  },
+  async ({ event }) => {
+    const { data } = event;
     await prisma.workspaceMember.create({
       data: {
         userId: data.user_id,
         workspaceId: data.organization_id,
         role: String(data.role.name).toUpperCase(),
       },
-    }),
-  ],
-});
+    });
+  },
+);
 
 // Create an empty array where we'll export future Inngest functions
 export const functions = [
