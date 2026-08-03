@@ -5,13 +5,21 @@ import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loadTheme } from "../features/themeSlice";
 import { Loader2Icon } from "lucide-react";
-import { SignIn, useUser } from "@clerk/react";
+import { CreateOrganization, SignIn, useAuth, useUser } from "@clerk/react";
+import { fetchWorkspaces } from "../features/workspaceSlice";
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { loading } = useSelector((state) => state.workspace);
+  const { loading, workspaces } = useSelector((state) => state.workspace);
   const dispatch = useDispatch();
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    if (isLoaded && user && workspaces.length === 0) {
+      dispatch(fetchWorkspaces({ getToken }));
+    }
+  }, [user, isLoaded]);
 
   // Initial load of theme
   useEffect(() => {
@@ -31,6 +39,14 @@ const Layout = () => {
         <Loader2Icon className="size-7 text-blue-500 animate-spin" />
       </div>
     );
+
+  if (user && workspaces.length === 0) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <CreateOrganization />
+      </div>
+    );
+  }
 
   return (
     <div className="flex bg-white dark:bg-zinc-950 text-gray-900 dark:text-slate-100">
