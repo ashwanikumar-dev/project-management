@@ -109,11 +109,12 @@ const syncWorkspaceMemberCreation = inngest.createFunction(
   },
   async ({ event }) => {
     const { data } = event;
+    console.log(JSON.stringify(event.data, null, 2));
     await prisma.workspaceMember.create({
       data: {
         userId: data.user_id,
         workspaceId: data.organization_id,
-        role: String(data.role.name).toUpperCase(),
+        role: "MEMBER",
       },
     });
   },
@@ -136,57 +137,108 @@ const sendTaskAssignmentEmail = inngest.createFunction(
       to: task.assignee.email,
       subject: `New Task Assignment in ${task.project.name}`,
       body: `
-<div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 620px; margin: 0 auto; background: #f5f7fb; padding: 32px;">
 
-  <h2 style="margin: 0 0 20px; color: #111827;">
-    ⏰ Task Reminder
-  </h2>
+  <div style="background:#ffffff; border-radius:18px; overflow:hidden; border:1px solid #e5e7eb; box-shadow:0 8px 30px rgba(0,0,0,0.05);">
 
-  <p style="margin: 0 0 16px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-    Hi <strong>${task.assignee.name}</strong>,
-  </p>
+    <div style="padding:32px; background:linear-gradient(135deg,#2563eb,#3b82f6); text-align:center;">
+      <div style="font-size:42px;">⏰</div>
 
-  <p style="margin: 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-    This is a friendly reminder that your assigned task is due soon. Please make sure it is completed before the deadline.
-  </p>
+      <h1 style="margin:16px 0 8px; color:white; font-size:28px; font-weight:700;">
+        Task Reminder
+      </h1>
 
-  <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin: 24px 0;">
+      <p style="margin:0; color:rgba(255,255,255,0.9); font-size:15px;">
+        Your deadline is approaching.
+      </p>
+    </div>
 
-    <p style="margin: 0 0 12px;">
-      <strong>Task:</strong> ${task.title}
-    </p>
+    <div style="padding:32px;">
 
-    <p style="margin: 0;">
-      <strong>Due Date:</strong>
-      ${new Date(task.due_date).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })}
-    </p>
+      <p style="margin:0 0 16px; color:#374151; font-size:16px;">
+        Hi <strong>${task.assignee.name}</strong>,
+      </p>
+
+      <p style="margin:0 0 28px; color:#6b7280; font-size:15px; line-height:1.7;">
+        This is a reminder that one of your assigned tasks is approaching its due date.
+        Please review it and complete the remaining work before the deadline.
+      </p>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:24px;">
+
+        <div style="margin-bottom:18px;">
+          <div style="font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.08em;">
+            Task
+          </div>
+
+          <div style="margin-top:6px; font-size:18px; font-weight:700; color:#111827;">
+            ${task.title}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.08em;">
+            Due Date
+          </div>
+
+          <div style="margin-top:6px; display:inline-block; padding:8px 14px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-weight:600;">
+            ${new Date(task.due_date).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      <div style="text-align:center; margin:36px 0;">
+
+        <a
+  href="${origin}"
+  style="
+    display:inline-block;
+    background-color:#2563eb;
+    background:#2563eb;
+    color:#ffffff !important;
+    text-decoration:none;
+    font-weight:700;
+    font-size:15px;
+    line-height:20px;
+    padding:14px 28px;
+    border-radius:10px;
+    border:1px solid #2563eb;
+    mso-padding-alt:0;
+  "
+>
+  <span style="color:#ffffff !important;">
+    View Task →
+  </span>
+</a>
+
+      </div>
+
+      <p style="margin:0; color:#9ca3af; font-size:14px; text-align:center;">
+        If the button doesn't work, open this link:
+      </p>
+
+      <p style="margin:10px 0 0; text-align:center; word-break:break-word;">
+        <a href="${origin}" style="color:#2563eb; text-decoration:none;">
+          ${origin}
+        </a>
+      </p>
+
+    </div>
+
+    <div style="padding:22px; background:#f9fafb; border-top:1px solid #e5e7eb; text-align:center;">
+
+      <p style="margin:0; font-size:13px; color:#9ca3af;">
+        Sent automatically by <strong>Viora</strong> • Please do not reply.
+      </p>
+
+    </div>
 
   </div>
-
-  <a
-    href="${origin}"
-    style="display: inline-block; padding: 12px 22px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600;"
-  >
-    View Task
-  </a>
-
-  <p style="margin-top: 32px; color: #6b7280; font-size: 14px;">
-    If the button above doesn't work, copy and paste the following link into your browser:
-  </p>
-
-  <p style="margin: 8px 0 0; word-break: break-all; color: #2563eb; font-size: 14px;">
-    ${origin}
-  </p>
-
-  <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;" />
-
-  <p style="margin: 0; color: #9ca3af; font-size: 13px;">
-    This is an automated notification from <strong>Viora</strong>. Please do not reply to this email.
-  </p>
 
 </div>
 `,
@@ -209,57 +261,108 @@ const sendTaskAssignmentEmail = inngest.createFunction(
               to: task.assignee.email,
               subject: `Reminder for ${task.project.name}`,
               body: `
-<div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+<div style="font-family: Arial, Helvetica, sans-serif; max-width: 620px; margin: 0 auto; background: #f5f7fb; padding: 32px;">
 
-  <h2 style="margin: 0 0 20px; color: #111827;">
-    ⏰ Task Reminder
-  </h2>
+  <div style="background:#ffffff; border-radius:18px; overflow:hidden; border:1px solid #e5e7eb; box-shadow:0 8px 30px rgba(0,0,0,0.05);">
 
-  <p style="margin: 0 0 16px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-    Hi <strong>${task.assignee.name}</strong>,
-  </p>
+    <div style="padding:32px; background:linear-gradient(135deg,#2563eb,#3b82f6); text-align:center;">
+      <div style="font-size:42px;">⏰</div>
 
-  <p style="margin: 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-    This is a friendly reminder that your assigned task is due soon. Please make sure it is completed before the deadline.
-  </p>
+      <h1 style="margin:16px 0 8px; color:white; font-size:28px; font-weight:700;">
+        Task Reminder
+      </h1>
 
-  <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin: 24px 0;">
+      <p style="margin:0; color:rgba(255,255,255,0.9); font-size:15px;">
+        Your deadline is approaching.
+      </p>
+    </div>
 
-    <p style="margin: 0 0 12px;">
-      <strong>Task:</strong> ${task.title}
-    </p>
+    <div style="padding:32px;">
 
-    <p style="margin: 0;">
-      <strong>Due Date:</strong>
-      ${new Date(task.due_date).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })}
-    </p>
+      <p style="margin:0 0 16px; color:#374151; font-size:16px;">
+        Hi <strong>${task.assignee.name}</strong>,
+      </p>
+
+      <p style="margin:0 0 28px; color:#6b7280; font-size:15px; line-height:1.7;">
+        This is a reminder that one of your assigned tasks is approaching its due date.
+        Please review it and complete the remaining work before the deadline.
+      </p>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:24px;">
+
+        <div style="margin-bottom:18px;">
+          <div style="font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.08em;">
+            Task
+          </div>
+
+          <div style="margin-top:6px; font-size:18px; font-weight:700; color:#111827;">
+            ${task.title}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:12px; color:#6b7280; text-transform:uppercase; letter-spacing:.08em;">
+            Due Date
+          </div>
+
+          <div style="margin-top:6px; display:inline-block; padding:8px 14px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-weight:600;">
+            ${new Date(task.due_date).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      <div style="text-align:center; margin:36px 0;">
+
+        <a
+  href="${origin}"
+  style="
+    display:inline-block;
+    background-color:#2563eb;
+    background:#2563eb;
+    color:#ffffff !important;
+    text-decoration:none;
+    font-weight:700;
+    font-size:15px;
+    line-height:20px;
+    padding:14px 28px;
+    border-radius:10px;
+    border:1px solid #2563eb;
+    mso-padding-alt:0;
+  "
+>
+  <span style="color:#ffffff !important;">
+    View Task →
+  </span>
+</a>
+
+      </div>
+
+      <p style="margin:0; color:#9ca3af; font-size:14px; text-align:center;">
+        If the button doesn't work, open this link:
+      </p>
+
+      <p style="margin:10px 0 0; text-align:center; word-break:break-word;">
+        <a href="${origin}" style="color:#2563eb; text-decoration:none;">
+          ${origin}
+        </a>
+      </p>
+
+    </div>
+
+    <div style="padding:22px; background:#f9fafb; border-top:1px solid #e5e7eb; text-align:center;">
+
+      <p style="margin:0; font-size:13px; color:#9ca3af;">
+        Sent automatically by <strong>Viora</strong> • Please do not reply.
+      </p>
+
+    </div>
 
   </div>
-
-  <a
-    href="${origin}"
-    style="display: inline-block; padding: 12px 22px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600;"
-  >
-    View Task
-  </a>
-
-  <p style="margin-top: 32px; color: #6b7280; font-size: 14px;">
-    If the button above doesn't work, copy and paste the following link into your browser:
-  </p>
-
-  <p style="margin: 8px 0 0; word-break: break-all; color: #2563eb; font-size: 14px;">
-    ${origin}
-  </p>
-
-  <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;" />
-
-  <p style="margin: 0; color: #9ca3af; font-size: 13px;">
-    This is an automated notification from <strong>Viora</strong>. Please do not reply to this email.
-  </p>
 
 </div>
 `,
