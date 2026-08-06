@@ -3,18 +3,18 @@ import { ChevronDown, Check, Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentWorkspace } from "../features/workspaceSlice";
 import { useNavigate } from "react-router-dom";
-import { useClerk,  useOrganizationList } from "@clerk/react";
+import { useClerk, useOrganizationList } from "@clerk/react";
 
 function WorkspaceDropdown() {
   const { userMemberships, isLoaded } = useOrganizationList({
     userMemberships: true,
   });
-  console.log(userMemberships);
   const { openCreateOrganization, setActive } = useClerk();
   const { workspaces } = useSelector((state) => state.workspace);
   const currentWorkspace = useSelector(
     (state) => state.workspace?.currentWorkspace || null,
   );
+  console.log(workspaces[0]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -27,6 +27,11 @@ function WorkspaceDropdown() {
     setIsOpen(false);
     navigate("/");
   };
+
+  const selectedOrganization =
+    userMemberships?.data?.find(
+      (membership) => membership.organization?.id === currentWorkspace?.id,
+    ) ?? null;
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -53,7 +58,10 @@ function WorkspaceDropdown() {
       >
         <div className="flex items-center gap-3">
           <img
-            src={currentWorkspace?.image_url}
+            src={
+              selectedOrganization?.organization?.imageUrl ??
+              currentWorkspace?.image_url
+            }
             alt={currentWorkspace?.name}
             className="w-8 h-8 rounded shadow"
           />

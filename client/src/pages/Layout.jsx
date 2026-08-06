@@ -5,8 +5,9 @@ import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loadTheme } from "../features/themeSlice";
 import { Loader2Icon } from "lucide-react";
-import { CreateOrganization, SignIn, useAuth, useUser } from "@clerk/react";
+import { SignIn, useAuth, useUser } from "@clerk/react";
 import { fetchWorkspaces } from "../features/workspaceSlice";
+import NoWorkspace from "../components/NoWorkspace";
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -42,8 +43,8 @@ const Layout = () => {
 
   if (user && workspaces.length === 0) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <CreateOrganization />
+      <div >
+        <NoWorkspace />
       </div>
     );
   }

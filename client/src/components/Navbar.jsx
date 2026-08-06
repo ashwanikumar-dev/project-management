@@ -1,54 +1,76 @@
-import { SearchIcon, PanelLeft } from 'lucide-react'
-import { useDispatch, useSelector } from 'react-redux'
-import { toggleTheme } from '../features/themeSlice'
-import { MoonIcon, SunIcon } from 'lucide-react'
-import { assets } from '../assets/assets'
-import { UserButton } from '@clerk/react'
+import { SearchIcon, PanelLeft } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleTheme } from "../features/themeSlice";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { UserButton } from "@clerk/react";
+import viora_logo from "../assets/viora_logo.png";
 
 const Navbar = ({ setIsSidebarOpen }) => {
+  const dispatch = useDispatch();
+  const { theme } = useSelector((state) => state.theme);
 
-    const dispatch = useDispatch();
-    const { theme } = useSelector(state => state.theme);
+  return (
+    <div
+      className="
+    sticky top-0 z-50
+    w-full flex-shrink-0
+    border-b border-zinc-200/60 dark:border-zinc-800
+    bg-white/80 dark:bg-zinc-900/80
+    backdrop-blur-xl
+    px-4 sm:px-6 lg:px-10
+    py-3
+  "
+    >
+      <div className="flex items-center justify-between w-full">
+        {/* Left */}
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Sidebar */}
+          <button
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            className="sm:hidden p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <PanelLeft className="size-5 text-zinc-700 dark:text-zinc-200" />
+          </button>
 
-    return (
-        <div className="w-full bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-6 xl:px-16 py-3 flex-shrink-0">
-            <div className="flex items-center justify-between max-w-6xl mx-auto">
-                {/* Left section */}
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                    {/* Sidebar Trigger */}
-                    <button onClick={() => setIsSidebarOpen((prev) => !prev)} className="sm:hidden p-2 rounded-lg transition-colors text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800" >
-                        <PanelLeft size={20} />
-                    </button>
+          {/* Logo */}
+          <div className="h-14 w-14 shrink-0">
+            <img
+              src={viora_logo}
+              alt="VIORA Logo"
+              className="h-full w-full object-contain"
+            />
+          </div>
 
-                    {/* Search Input */}
-                    <div className="relative flex-1 max-w-sm">
-                        <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-400 size-3.5" />
-                        <input
-                            type="text"
-                            placeholder="Search projects, tasks..."
-                            className="pl-8 pr-4 py-2 w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition"
-                        />
-                    </div>
-                </div>
+          {/* Brand */}
+          <div className="leading-tight min-w-0">
+            <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white truncate">
+              VIORA
+            </h1>
 
-                {/* Right section */}
-                <div className="flex items-center gap-3">
-
-                    {/* Theme Toggle */}
-                    <button onClick={() => dispatch(toggleTheme())} className="size-8 flex items-center justify-center bg-white dark:bg-zinc-800 shadow rounded-lg transition hover:scale-105 active:scale-95">
-                        {
-                            theme === "light"
-                                ? (<MoonIcon className="size-4 text-gray-800 dark:text-gray-200" />)
-                                : (<SunIcon className="size-4 text-yellow-400" />)
-                        }
-                    </button>
-
-                    {/* User Button */}
-                    <UserButton />
-                </div>
-            </div>
+            <p className="hidden sm:block text-xs text-zinc-500 dark:text-zinc-400 truncate">
+              Smart Project Management
+            </p>
+          </div>
         </div>
-    )
-}
 
-export default Navbar
+        {/* Right */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-white transition hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+          >
+            {theme === "light" ? (
+              <MoonIcon className="size-4 text-zinc-800" />
+            ) : (
+              <SunIcon className="size-4 text-yellow-400" />
+            )}
+          </button>
+
+          <UserButton />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Navbar;
